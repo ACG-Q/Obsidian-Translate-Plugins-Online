@@ -14,7 +14,6 @@
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "antd": "^5.2.0",
-    "bing-translate-api": "file:C:/Users/11834/Desktop/bing-translate-api-master",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",

@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { FC, useEffect, useRef } from "react";
+import React, { FC, useEffect, useRef } from "react";
 
 import {
     InboxOutlined,
@@ -8,8 +8,8 @@ import {
 } from "@ant-design/icons";
 import { Button, message, Spin } from "antd";
 import { useState } from "react";
-import { TranslateTable } from "./translateTable/index";
-import { exportJavascript } from "../../util/common/ioText";
+import { TranslateTable } from "view/Home/translateTable";
+import { exportJavascript } from "util/common/ioText";
 
 interface IMainRef {
     files: File[];

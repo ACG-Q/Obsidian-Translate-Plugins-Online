@@ -5,7 +5,7 @@ import { FC, useRef } from "react";
 
 import { TranslationOutlined, SelectOutlined } from "@ant-design/icons";
 import { useEffect } from "react";
-import { exportJson } from "../../../util/common/ioJson";
+import { exportJson } from "util/common/ioJson";
 import { useState } from "react";
 
 interface ITranslateTable {
