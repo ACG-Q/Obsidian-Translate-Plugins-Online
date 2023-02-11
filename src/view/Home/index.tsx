@@ -1,15 +1,10 @@
 import styled from "@emotion/styled";
-import React, { FC, useEffect, useRef } from "react";
+import React, {FC, useEffect, useRef, useState} from "react";
 
-import {
-    InboxOutlined,
-    HomeOutlined,
-    RollbackOutlined,
-} from "@ant-design/icons";
-import { Button, message, Spin } from "antd";
-import { useState } from "react";
-import { TranslateTable } from "view/Home/translateTable";
-import { exportJavascript } from "util/common/ioText";
+import {HomeOutlined, InboxOutlined, RollbackOutlined,} from "@ant-design/icons";
+import {Button, message, Spin} from "antd";
+import {TranslateTable} from "view/Home/translateTable";
+import {exportJavascript} from "util/common/io";
 
 interface IMainRef {
     files: File[];
@@ -19,13 +14,14 @@ interface IMainRef {
 export const Home: FC = () => {
     const uploadRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const mainRef = useRef<IMainRef>({ files: [], translate: [] });
+    const mainRef = useRef<IMainRef>({files: [], translate: []});
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [step, setStep] = useState<number>(0);
 
     // 拖拽上传事件
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleEvent = (event: DragEvent) => {
         // 阻止事件的默认行为
         event.preventDefault();
@@ -50,7 +46,7 @@ export const Home: FC = () => {
         }
     };
 
-    const handleMainFile = (file: File, replace?: {toBeTranslate: string[], translate: string[]}, set?:React.Dispatch<React.SetStateAction<boolean>>) => {
+    const handleMainFile = (file: File, replace?: { [key in string]: string }, set?: React.Dispatch<React.SetStateAction<boolean>>) => {
         set && set(true)
         // 提取代码段
         let matchCode = new RegExp(
@@ -73,17 +69,15 @@ export const Home: FC = () => {
                 for (let match of matchArray) {
                     let s = match[0];
                     let ex = extractText.exec(s);
-                    if(ex![2] !== null || ex![2] !== "") mainRef.current.translate.push(ex![2]);
+                    if (ex![2] !== null || ex![2] !== "") mainRef.current.translate.push(ex![2]);
                 }
                 setStep(1);
             }
 
-            if(result && replace) {
+            if (result && replace) {
                 let r = result as string
-                for(let i = 0; i< replace.toBeTranslate.length; i ++){
-                    if(replace.toBeTranslate[i] !== replace.translate[i]){
-                        r = r.replace(replace.toBeTranslate[i], replace.translate[i])
-                    }
+                for (let key in replace) {
+                    r = r.replace(key, replace[key])
                 }
                 exportJavascript(r, "main.js")
             }
@@ -119,6 +113,7 @@ export const Home: FC = () => {
         }
         return () => {
             if (uploadRef.current) {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
                 let upload = uploadRef.current;
                 upload.removeEventListener("drop", handleEvent);
                 upload.removeEventListener("dragenter", handleEvent);
@@ -126,7 +121,7 @@ export const Home: FC = () => {
                 upload.removeEventListener("dragleave", handleEvent);
             }
         };
-    }, []);
+    }, [handleEvent]);
 
     return (
         <Container>
@@ -137,25 +132,25 @@ export const Home: FC = () => {
                 <HeaderRight>
                     <Button
                         type={"text"}
-                        icon={<HomeOutlined />}
+                        icon={<HomeOutlined/>}
                         onClick={() => window.location.reload()}
                     />
                     <Button
                         type={"text"}
-                        icon={<RollbackOutlined />}
+                        icon={<RollbackOutlined/>}
                         onClick={() => window.history.go(-1)}
                     />
                 </HeaderRight>
             </Header>
             {step === 0 &&
                 (isLoading ? (
-                    <Spin />
+                    <Spin/>
                 ) : (
                     <UploadContainer
                         ref={uploadRef}
                         onClick={() => inputRef.current?.click()}>
                         <UploadIcon>
-                            <InboxOutlined />
+                            <InboxOutlined/>
                         </UploadIcon>
                         <UploadTitle>
                             单击或拖动 <code>main.js</code> 到此区域进行上传
@@ -173,7 +168,8 @@ export const Home: FC = () => {
                     </UploadContainer>
                 ))}
             {step === 1 ? (
-                <TranslateTable translate={mainRef.current.translate} exportFile={(replace, setIsLoading)=>handleMainFile(mainRef.current.files[0], replace, setIsLoading)}/>
+                <TranslateTable translate={mainRef.current.translate}
+                                exportFile={(replace, setIsLoading) => handleMainFile(mainRef.current.files[0], replace, setIsLoading)}/>
             ) : null}
         </Container>
     );
@@ -182,61 +178,64 @@ export const Home: FC = () => {
 const Container = styled.div``;
 
 const Header = styled.div`
-    display: flex;
-    justify-content: space-between;
-    min-width: 800px;
-    width: 80vw;
+  display: flex;
+  justify-content: space-between;
+  min-width: 800px;
+  width: 80vw;
 `;
 
 const HeaderLeft = styled.div`
-    display: flex;
+  display: flex;
 `;
 
 const HeaderRight = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    & > :not(:last-child) {
-        margin-right: 10px;
-    }
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  & > :not(:last-child) {
+    margin-right: 10px;
+  }
 `;
 
 const H1 = styled.h1`
-    user-select: none;
+  user-select: none;
 `;
 
 const UploadContainer = styled.div`
-    border: 1px dashed #dedede;
-    border-radius: 10px;
-    &:hover {
-        border: 1px dashed #4482ff;
-    }
-    min-width: 800px;
-    width: 80vw;
-    height: 200px;
-    box-sizing: border-box;
-    padding: 10px;
+  border: 1px dashed #dedede;
+  border-radius: 10px;
 
-    text-align: center;
-    user-select: none;
+  &:hover {
+    border: 1px dashed #4482ff;
+  }
+
+  min-width: 800px;
+  width: 80vw;
+  height: 200px;
+  box-sizing: border-box;
+  padding: 10px;
+
+  text-align: center;
+  user-select: none;
 `;
 
 const UploadIcon = styled.div`
-    color: #1677ff;
-    font-size: 48px;
+  color: #1677ff;
+  font-size: 48px;
 `;
 
 const UploadTitle = styled.div`
-    margin: 0 0 4px;
-    color: rgba(0, 0, 0, 0.88);
-    font-size: 16px;
+  margin: 0 0 4px;
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 16px;
 `;
 
 const UploadDesc = styled.div`
-    color: rgba(0, 0, 0, 0.45);
-    font-size: 14px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
 `;
 
 const UploadInput = styled.input`
-    display: none;
+  display: none;
 `;

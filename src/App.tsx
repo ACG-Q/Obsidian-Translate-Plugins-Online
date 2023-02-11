@@ -1,14 +1,13 @@
-import './App.css';
-import { Home } from './view/Home';
+import {Home} from 'view/Home';
 import styled from '@emotion/styled';
 
 function App() {
-  return (
-    <CenterDiv>
-      <Home />
-    </CenterDiv>
-    
-  );
+    return (
+        <CenterDiv>
+            <Home/>
+        </CenterDiv>
+
+    );
 }
 
 const CenterDiv = styled.div`
