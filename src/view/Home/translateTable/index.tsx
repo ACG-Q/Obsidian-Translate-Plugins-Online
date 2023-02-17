@@ -55,7 +55,7 @@ export const TranslateTable: FC<ITranslateTable> = ({translate, exportFile}) => 
     };
 
     const handleImportDictionary = () => {
-
+        setIsLoading(true)
         ImportFile((result) => {
             api.open({
                 message: "上传字典成功",
@@ -70,6 +70,7 @@ export const TranslateTable: FC<ITranslateTable> = ({translate, exportFile}) => 
             for (let key in translateMap) {
                 currentTranslateMap[key] = translateMap[key]
             }
+            setIsLoading(false)
         })
     }
 
@@ -110,7 +111,9 @@ export const TranslateTable: FC<ITranslateTable> = ({translate, exportFile}) => 
                         {translate?.map((v, index) => (
                             <Tr key={index}>
                                 <Td>{v}</Td>
-                                <Td onDoubleClick={(e) => handleTextToInput(e, v)}>{v}</Td>
+                                <Td onDoubleClick={(e) => handleTextToInput(e, v)}>
+                                    {(translateRef.current && translateRef.current.translate.hasOwnProperty(v)) ? translateRef.current.translate[v] : v}
+                                </Td>
                             </Tr>
                         ))}
                     </Tbody>
