@@ -1,2 +1,3 @@
 # Obsidian-Translate-Plugins-Online
-Obsidian插件翻译 v0.2
+
+当前分支为翻译字典存储分支
