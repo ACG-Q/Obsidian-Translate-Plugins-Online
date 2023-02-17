@@ -50,11 +50,11 @@ export const Home: FC = () => {
         set && set(true)
         // 提取代码段
         let matchCode = new RegExp(
-            "(title|message|setName|setDesc|subtitle|text|description)[:(]+s*(\".*?\"|'.*?'|`.*?`)",
+            "(title|message|setName|setDesc|subtitle|text|description|createTitle|name|setTooltip)[:(]+s*(\".*?\"|'.*?'|`.*?`)",
             "g"
         );
         // 提取字符串
-        let extractText = new RegExp("[:(]+s*(\"(.*?)\"|'(.*?)'|`(.*?)`)");
+        let extractText = new RegExp("[:(]+s*(\"(.*?)\"|'(.*?)'|`(.*?)`)", "g");
 
         // 创建文件对象
         let reader = new FileReader();
@@ -69,7 +69,13 @@ export const Home: FC = () => {
                 for (let match of matchArray) {
                     let s = match[0];
                     let ex = extractText.exec(s);
-                    if (ex![2] !== null || ex![2] !== "") mainRef.current.translate.push(ex![2]);
+                    if (ex && ex![2] && ex![2] !== null && ex![2] !== "") { // 双引号
+                        mainRef.current.translate.push(ex![2]);
+                    }else if(ex && ex![3] && ex![3] !== null && ex![3] !== "") { // 单引号
+                        mainRef.current.translate.push(ex![3]);
+                    }else if(ex && ex![4] && ex![4] !== null && ex![4] !== "") { // 转义符
+                        mainRef.current.translate.push(ex![4]);
+                    }
                 }
                 setStep(1);
             }
