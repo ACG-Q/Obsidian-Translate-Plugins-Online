@@ -11,6 +11,12 @@ interface IMainRef {
     translate: string[];
 }
 
+interface IHandleFile {
+    matchCode: RegExp
+    extractText: RegExp
+    extractIndexs: number[]
+}
+
 export const Home: FC = () => {
     const uploadRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -19,6 +25,31 @@ export const Home: FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [step, setStep] = useState<number>(0);
+
+    const handleGetFile = (file_: File) => {
+        if (file_ && file_.name.match(/main/) !== null) {
+            // 把文件保存到文件数组中
+            mainRef.current.files.push(file_);
+            message.success(`找到${file_.name}`).then(r => console.log(r));
+            let matchCode = new RegExp(
+                "(title|message|setName|setDesc|subtitle|text|description|createTitle|name|setTooltip)[:(]+s*(\".*?\"|'.*?'|`.*?`)",
+                "g"
+            );
+            let extractText = new RegExp("[:(]+s*(\"(.*?)\"|'(.*?)'|`(.*?)`)", "g");
+            handleFile(file_, {matchCode, extractText, extractIndexs: [2,3,4]})
+        }
+        if (file_ && file_.name.match(/theme/) !== null) {
+            // 把文件保存到文件数组中
+            mainRef.current.files.push(file_);
+            message.success(`找到${file_.name}`).then(r => console.log(r));
+            let matchCode = new RegExp(
+                "(title|description):\\s+.*",
+                "g"
+            );
+            let extractText = new RegExp("\\s+(.*)", "g");
+            handleFile(file_, {matchCode, extractText, extractIndexs: [1]})
+        }
+    }
 
     // 拖拽上传事件
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -34,28 +65,16 @@ export const Home: FC = () => {
                         file.webkitGetAsEntry()?.isFile
                     ) {
                         let file_ = file.getAsFile();
-                        if (file_ && file_.name.match(/main/) !== null) {
-                            // 把文件保存到文件数组中
-                            mainRef.current.files.push(file_);
-                            message.success(`找到${file_.name}`);
-                            handleMainFile(file_);
-                        }
+                        file_ && handleGetFile(file_)
                     }
                 }
             }
         }
     };
 
-    const handleMainFile = (file: File, replace?: { [key in string]: string }, set?: React.Dispatch<React.SetStateAction<boolean>>) => {
+    const handleFile = (file: File, options: IHandleFile, replace?: { [key in string]: string }, set?: React.Dispatch<React.SetStateAction<boolean>>) => {
         set && set(true)
-        // 提取代码段
-        let matchCode = new RegExp(
-            "(title|message|setName|setDesc|subtitle|text|description|createTitle|name|setTooltip)[:(]+s*(\".*?\"|'.*?'|`.*?`)",
-            "g"
-        );
-        // 提取字符串
-        let extractText = new RegExp("[:(]+s*(\"(.*?)\"|'(.*?)'|`(.*?)`)", "g");
-
+        let {matchCode, extractText, extractIndexs}  = options
         // 创建文件对象
         let reader = new FileReader();
         // 文件转为文件流
@@ -69,12 +88,11 @@ export const Home: FC = () => {
                 for (let match of matchArray) {
                     let s = match[0];
                     let ex = extractText.exec(s);
-                    if (ex && ex![2] && ex![2] !== null && ex![2] !== "") { // 双引号
-                        mainRef.current.translate.push(ex![2]);
-                    }else if(ex && ex![3] && ex![3] !== null && ex![3] !== "") { // 单引号
-                        mainRef.current.translate.push(ex![3]);
-                    }else if(ex && ex![4] && ex![4] !== null && ex![4] !== "") { // 转义符
-                        mainRef.current.translate.push(ex![4]);
+                    for(let index of extractIndexs) {
+                        if (ex && ex![index] && ex![index] !== null && ex![index] !== "") {
+                            mainRef.current.translate.push(ex![index]);
+                            break
+                        }
                     }
                 }
                 setStep(1);
@@ -85,13 +103,33 @@ export const Home: FC = () => {
                 for (let key in replace) {
                     r = r.replace(key, replace[key])
                 }
-                exportJavascript(r, "main.js")
+                exportJavascript(r, file.name)
             }
             set && set(false)
         };
         reader.onloadstart = () => setIsLoading(true);
         reader.onloadend = () => setIsLoading(false);
-    };
+    }
+
+    const handleReplace = (file:File, replace: { [key in string]: string }, set: React.Dispatch<React.SetStateAction<boolean>>) => {
+        set && set(true)
+        // 创建文件对象
+        let reader = new FileReader();
+        // 文件转为文件流
+        reader.readAsText(file, "UTF-8");
+        // 文件读取完成，根据类型不同显示不同的图标
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+            let result = e.target?.result;
+            if (result) {
+                let r = result as string
+                for (let key in replace) {
+                    r = r.replace(key, replace[key])
+                }
+                exportJavascript(r, file.name)
+            }
+            set && set(false)
+        };
+    }
 
     const handleInputFileChange: React.ReactEventHandler<HTMLInputElement> = (
         e
@@ -99,12 +137,7 @@ export const Home: FC = () => {
         let files = e.currentTarget.files;
         if (files && files.length > 0) {
             for (let file of files) {
-                if (file && file.name.match(/main/) !== null) {
-                    // 把文件保存到文件数组中
-                    mainRef.current.files.push(file);
-                    message.success(`找到${file.name}`);
-                    handleMainFile(file);
-                }
+                file && handleGetFile(file)
             }
         }
     };
@@ -174,8 +207,7 @@ export const Home: FC = () => {
                     </UploadContainer>
                 ))}
             {step === 1 ? (
-                <TranslateTable translate={mainRef.current.translate}
-                                exportFile={(replace, setIsLoading) => handleMainFile(mainRef.current.files[0], replace, setIsLoading)}/>
+                <TranslateTable translate={mainRef.current.translate} exportFile={(replace, setIsLoading) => handleReplace(mainRef.current.files[0], replace, setIsLoading)}/>
             ) : null}
         </Container>
     );
