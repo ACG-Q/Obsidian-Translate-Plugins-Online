@@ -16,7 +16,6 @@ export const TranslateTable: FC<ITranslateTable> = ({translate, exportFile}) => 
     const translateRef = useRef<{ translate: { [key in string]: string } }>({translate: {}})
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [api, contextHolder] = notification.useNotification();
-
     const handleTextToInput = (e: React.MouseEvent<HTMLTableCellElement, MouseEvent>, key: string) => {
         let td = e.currentTarget;
         let textarea = document.createElement("textarea");

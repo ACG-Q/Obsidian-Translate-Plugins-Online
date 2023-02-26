@@ -1,10 +1,11 @@
 import styled from "@emotion/styled";
 import React, {FC, useEffect, useRef, useState} from "react";
 
-import {HomeOutlined, InboxOutlined, RollbackOutlined,} from "@ant-design/icons";
+import {HomeOutlined, InboxOutlined, RollbackOutlined, SettingOutlined} from "@ant-design/icons";
 import {Button, message, Spin} from "antd";
-import {TranslateTable} from "view/Home/translateTable";
+import {TranslateTable} from "view/home/translateTable";
 import {exportJavascript} from "util/common/io";
+import {SettingSide} from "view/home/setting";
 
 interface IMainRef {
     files: File[];
@@ -17,6 +18,7 @@ export const Home: FC = () => {
     const mainRef = useRef<IMainRef>({files: [], translate: []});
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [open, setOpen] = useState(false);
 
     const [step, setStep] = useState<number>(0);
 
@@ -146,6 +148,11 @@ export const Home: FC = () => {
                         icon={<RollbackOutlined/>}
                         onClick={() => window.history.go(-1)}
                     />
+                    <Button
+                        type={"text"}
+                        icon={<SettingOutlined />}
+                        onClick={() => setOpen(true)}
+                    />
                 </HeaderRight>
             </Header>
             {step === 0 &&
@@ -177,6 +184,10 @@ export const Home: FC = () => {
                 <TranslateTable translate={mainRef.current.translate}
                                 exportFile={(replace, setIsLoading) => handleMainFile(mainRef.current.files[0], replace, setIsLoading)}/>
             ) : null}
+            <SettingSide
+                onClose={()=>setOpen(false)}
+                open={open}
+            />
         </Container>
     );
 };

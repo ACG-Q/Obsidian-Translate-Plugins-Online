@@ -1,4 +1,4 @@
-import {Home} from 'view/Home';
+import {Home} from "./view/home";
 import styled from '@emotion/styled';
 
 function App() {
